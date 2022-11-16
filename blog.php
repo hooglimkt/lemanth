@@ -1,4 +1,5 @@
 <?php 
+
 include "includes.php";
 include "Class/blogs.class.php";
 include "Class/textos.class.php";
