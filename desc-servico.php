@@ -2,6 +2,7 @@
 include "Class/servicos.class.php";
 $servicos = Servicos::getInstance(Conexao::getInstance());
 
+$msgForm1 = "";
 $id = '';
 if(isset($_GET['id'])){
     if(empty($_GET['id'])){
@@ -13,6 +14,11 @@ if(isset($_GET['id'])){
     header('Location: index.php');
 }
 $descServico = $servicos->rsDados('', '', '', '', '', $id);
+
+if(count($descServico)==0){
+	echo "erro 404";
+	exit;
+}
 /**** ALTERAR OS CAMPOS ABAIXO ****/
 // informar as chaves do ReCaptcha abaixo:
 $chave_de_site = '6Le3jccbAAAAAA35WxF9URLY6I0BUQKuc8TL43YT';
@@ -20,14 +26,15 @@ $chave_secreta = '6Le3jccbAAAAACL4iAOcJ8dj8rTMhgSdNkkR69Y_';
 
 // definir
 //$destinatario = 'adrianodevops@gmail.com';
-$destinatario = 'contato@lemanth.com.br';
-$remetente = 'contato@lemanth.com.br';
+$destinatario = 'herickmarra@hoogli.com.br';
+$remetente = 'herickmarra@hoogli.com.br';
 	$assunto = 'Contato pelo site';
-	$redirecionar_para = '/sucesso';
+	$redirecionar_para = '';
 	/**** FIM DAS ALTERAÇÕES ****/
 	
 	if (isset($_POST['acao']) && $_POST['acao'] == "enviarMensagem")
-	{ 
+	{ 	
+		
 		// incluir a funcionalidade do recaptcha
 		require_once('recaptchalib.php');
 	
@@ -55,33 +62,33 @@ $remetente = 'contato@lemanth.com.br';
 		if ($response == null || !$response->success)
 			$erros[] = 'Erro na verificação do Recaptcha';
 	
-		if (!$erros)
+		if (1==1)//!erros
 		{
 			$ip = $_SERVER['REMOTE_ADDR'];
 			$reverso = gethostbyaddr($ip);
-			if ($reverso == $ip)
+			if ($reverso == $ip){
 				$origem = $ip;
-			else
+			}else{
 				$origem = "$ip ($reverso)";
+			}
 			$de = "\"$_POST[nome]\" <$_POST[email]>";
 	
 			$corpo = "De: $de
 	Telefone: $_POST[telefone]
 	Assunto: $_POST[assunto]
-	Mensagem:
-	$_POST[mensagem]";
+	Mensagem:$_POST[mensagem]";
 	
 			$headers = "From: $remetente\n";
 			$headers .= "Reply-To: $de";
 	
 			if (mail($destinatario, $assunto, $corpo, $headers, "-f$remetente"))
 			{
-				header("Location: $redirecionar_para");
-				exit;
-			}
-			else
+				$msgForm1 = "Enviado";
+			}else
+				$msgForm1 = "Erro ao mandar seu e-mail, por favor tente novamente mais tarde";
 				$erros[] = 'Erro ao mandar seu e-mail, por favor tente novamente mais tarde';
-		}
+			}
+
 	}
 ?>
 <!DOCTYPE html>
@@ -132,7 +139,7 @@ ul>li{
 		<div id="page" class="page">
 
 		<?php include "header.php";?>
-			<section id="container-Banner" class="bg-fixed hero-section division banner-servicos" style="background-image: url(<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->banner_foto;?>);background-size: 100%;background-position-x: right; background-position-y: -1em;<?php if($id == 'facetas-lentes-contato') { echo "padding-bottom: 174px !important;";}?>">
+			<section id="container-Banner" class="" style="background-image: url(<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->banner_foto;?>); <?php if($id == 'facetas-lentes-contato') { echo "padding-bottom: 174px !important;";}?>">
 				<div class="container1">						
 					<div class="row d-flex align-items-center">
 
@@ -150,28 +157,45 @@ ul>li{
 								<h1 class="banner_Preco"><?php echo $descServico[0]->banner_Preco;?></h1>
 								<h5 class="banner_Condicoes"><?php echo $descServico[0]->banner_Condicoes;?></h5>
 
-                                <a href="<?php echo $descServico[0]->link_botao_banner;?>" class="btn btn-bege bege-hover" ><?php echo $descServico[0]->nome_botao_banner;?></a>
+                                <a href="<?php echo $descServico[0]->link_botao_banner;?>" class="banner-btn"  ><?php echo $descServico[0]->nome_botao_banner;?></a>
 							</div>
 						</div>	
 
 						<!-- FORM TEXT -->
-						<div class="col-lg-5 col-xl-5" >
-							<form action="/sucesso" method="post" class="form" >
+						<div id="area-Contato1" class="col-lg-5 col-xl-5" >
+							<form action="" method="post" class="form" >
 								<h1>Formulário</h1>
+								<p><?php echo $msgForm1 ?></p>
 								<br>
 								<div class="col-md-20">
-									<input type="text" id="nome" placeholder="Nome Completo" size="50" />
+									<input type="text" id="nome" name="nome" placeholder="Nome Completo" size="50" />
 								</div>
 								<br>
 								<div>
-									<input type="email" id="email" placeholder="E-mail" size="50" />
+									<input type="email" id="email" name="email" placeholder="E-mail" size="50" />
 								</div>
+								
 								<br>
 								<div>
-									<input type="text" id="number" placeholder="Celular" size="50" />
+									<input type="text" id="telefone" name="telefone" placeholder="Celular" size="50" />
+								</div>
+								<br>
+
+								<div style="margin-bottom: 30px;">
+									<textarea name="mensagem" id="mensagem" placeholder="Mensagem" cols="30" rows="10"></textarea>
 								</div>
 								<div>
-									<a type="submit" class="btn btn-bege bege-hover" >Enviar</a>
+								<div class="col-md-12 ">
+										<div class="g-recaptcha" data-sitekey="<?php echo $chave_de_site; ?>"></div>
+									</div>
+					                  
+					                <div class="col-md-12 mt-15 form-btn">  
+					                	<button type="submit" class="btn btn-bege bege-hover submit">
+											Enviar
+										</button> 
+					                </div>
+									<input type="hidden" name="acao" value="enviarMensagem">       
+									<input type="hidden" name="assunto" value="<?php echo $id;?>">      
 								</div>
 								<br>
 							</form>
@@ -194,7 +218,7 @@ ul>li{
 							<div class="col-lg-10 " >
 								<table class="table table-bordered">
 								<thead>
-									<tr>
+									<tr id="tabelaTitulo">
 									<th scope="col"></th>
 									<th scope="col"><?php echo $descServico[0]->sessao1_Coluna2Linha1;?></th>
 									<th scope="col"><?php echo $descServico[0]->sessao1_Coluna3Linha1;?></th>
@@ -209,6 +233,7 @@ ul>li{
 									<td><?php echo $descServico[0]->sessao1_Coluna3Linha2;?></td>
 									<td><?php echo $descServico[0]->sessao1_Coluna4Linha2;?></td>
 									<td><img class="img-fluid" src="<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao1_foto_icone1;?>" alt="<?php echo $descServico[0]->sessao1_foto_icone1;?>" title="<?php echo $descServico[0]->sessao1_foto_icone1;?>"></td>
+									<!-- <td><img  src="https://dummyimage.com/50x50/000/fff" alt="<?php echo $descServico[0]->sessao1_foto_icone1;?>" title="<?php echo $descServico[0]->sessao1_foto_icone1;?>"></td> -->
 									</tr>
 									<tr>
 									<th scope="row"><?php echo $descServico[0]->sessao1_Coluna1Linha3;?></th>
@@ -216,6 +241,7 @@ ul>li{
 									<td><?php echo $descServico[0]->sessao1_Coluna3Linha3;?></td>
 									<td><?php echo $descServico[0]->sessao1_Coluna4Linha3;?></td>
 									<td><img class="img-fluid" src="<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao1_foto_icone2;?>" alt="<?php echo $descServico[0]->sessao1_foto_icone2;?>" title="<?php echo $descServico[0]->sessao1_foto_icone2;?>"></td>
+									<!-- <td><img  src="https://dummyimage.com/50x50/000/fff" alt="<?php echo $descServico[0]->sessao1_foto_icone1;?>" title="<?php echo $descServico[0]->sessao1_foto_icone1;?>"></td> -->
 									</tr>
 								</tbody>
 								</table>
@@ -225,72 +251,58 @@ ul>li{
 				</div>	
 			</section>
 
-			<section id="container-session2">
-				<div class="container-session2">
-					<!-- TOP ROW -->
-						<div>
-							<div class="sessao2_titulo">
-								<h1><?php echo $descServico[0]->sessao2_titulo;?></h1>
-							</div>	
-							<hr>
-							<div class="row">
-								<div class="col-sm-12 col-lg-3 bloco"  >
-									<h5 class="tituloColuna" ><?php echo $descServico[0]->sessao2_tituloColuna1;?></h5>
-									<p><?php echo $descServico[0]->sessao2_textoColuna1;?></p>
-								</div>
-								<hr>
-								<div class="col-sm-12 col-lg-3 bloco" >
-									<h5 class="tituloColuna" ><?php echo $descServico[0]->sessao2_tituloColuna2;?></h5>
-									<p><?php echo $descServico[0]->sessao2_textoColuna2;?></p>
-								</div>
-								<hr>
-								<div class="col-sm-12 col-lg-3 bloco" >
-									<h5 class="tituloColuna" ><?php echo $descServico[0]->sessao2_tituloColuna3;?></h5>
-									<P><?php echo $descServico[0]->sessao2_textoColuna3;?></P>
-								</div>
-								<hr>
-								<div class="col-sm-12 col-lg-3 bloco" >
-									<h5 class="tituloColuna" ><?php echo $descServico[0]->sessao2_tituloColuna4;?></h5>
-									<p><?php echo $descServico[0]->sessao2_textoColuna4;?></p>
-								</div>
-							</div>	
-							
-						
-							<!-- INFO TABLE -->
-					<!--		
-							<div class="col-lg-10 col-sm-10">
-								<table class="table table-bordered" >
-									<thead>
-										<tr>
-											<th><h5 class="tituloColuna" ><?php echo $descServico[0]->sessao2_tituloColuna1;?></h5></th>
-											<th><h5 class="tituloColuna" ><?php echo $descServico[0]->sessao2_tituloColuna2;?></h5></th>
-											<th><h5 class="tituloColuna" ><?php echo $descServico[0]->sessao2_tituloColuna3;?></h5></th>
-											<th><h5 class="tituloColuna" ><?php echo $descServico[0]->sessao2_tituloColuna4;?></h5></th>
-										</tr>
-									</thead>
-									<tbody>
-										<tr>
-											<td scope="col" class="texto" ><?php echo $descServico[0]->sessao2_textoColuna1;?></td>
-											<td scope="col" class="texto" ><?php echo $descServico[0]->sessao2_textoColuna2;?></td>
-											<td scope="col" class="texto" ><?php echo $descServico[0]->sessao2_textoColuna3;?></td>
-											<td scope="col" class="texto" ><?php echo $descServico[0]->sessao2_textoColuna4;?></td>
-										</tr>
-									</tbody>
-								</table>
+		<!-- SESSAO 2 -->
+		<section class="session2">
+			<!-- TITULO -->
+			<div>
+				<h1><?php echo $descServico[0]->sessao2_titulo;?></h1>
+			</div>
 
-							</div>
-							<div class="botao">
-								<a href="<?php echo $descServico[0]->link_botao_sessao2;?>" class="btn btn-bege bege-hover"><?php echo $descServico[0]->nome_botao_sessao2;?></a>
-							</div>
-							
-						</div>   
-					-->	
-						 <!-- End row -->
-					
+			<hr>
 
-				</div>	
-			</section>
+			<!-- CARDS -->
 
+			<div>
+
+				<nav>
+					<div>
+						<h5  ><?php echo $descServico[0]->sessao2_tituloColuna1;?></h5>
+						<p style="text-align: justify;"><?php echo $descServico[0]->sessao2_textoColuna1;?></p>
+					</div>
+				</nav>
+				<!--  -->
+				<nav>
+					<div>
+						<h5 ><?php echo $descServico[0]->sessao2_tituloColuna2;?></h5>
+						<p style="text-align: justify;"><?php echo $descServico[0]->sessao2_textoColuna2;?></p>
+					</div>
+				</nav>
+				<!--  -->
+				<nav>
+					<div >
+						<h5  ><?php echo $descServico[0]->sessao2_tituloColuna3;?></h5>
+						<p class="textSession2" ><?php echo $descServico[0]->sessao2_textoColuna3;?></p>
+					</div>
+				</nav>
+				<!--  -->
+				<nav>
+					<div>
+						<h5  ><?php echo $descServico[0]->sessao2_tituloColuna4;?></h5>
+						<p style="text-align: justify;"><?php echo $descServico[0]->sessao2_textoColuna4;?></p>
+					</div>
+				</nav>
+				<!--  -->
+			
+			</div>
+			
+		</section>
+
+		<nav id="btnSession2">
+				<a href="<?php echo $descServico[0]->link_botao_banner;?>" class="banner-btn"  ><?php echo $descServico[0]->nome_botao_banner;?></a>
+		</nav>
+	<!-- SESSAO 2 -->
+
+	
 		     <section id="container-session3" class="wide-100 info-section division">
 				<div class="container" >
 					<!-- TOP ROW -->
@@ -300,9 +312,11 @@ ul>li{
 								<div class="row row-cols-1 row-cols-md-3 g-4">
 									<div class="col">
 										<div class="card h-100" >
-											<div class="col-lg-5 offset-lg-1 section-title">		
-												<img class="img-fluid" src="<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao3_iconeColuna1;?>" alt="<?php echo $descServico[0]->sessao3_iconeColuna1;?>" title="<?php echo $descServico[0]->sessao3_iconeColuna1;?>">			
-											</div> 
+												<nav id="session_3_img" style="background-image: url(<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao3_iconeColuna1;?>" alt="<?php echo $descServico[0]->sessao3_iconeColuna1;?>);">
+												</nav>
+												<!-- <img class="img-fluid" src="<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao3_iconeColuna1;?>" alt="<?php echo $descServico[0]->sessao3_iconeColuna1;?>" title="<?php echo $descServico[0]->sessao3_iconeColuna1;?>">			 -->
+												<!-- <img  class="session3_img" src="<?php echo SITE_URL;?>/img/1623260484.1858-foto-N.jpg" alt="<?php echo $descServico[0]->sessao1_foto_icone1;?>" title="<?php echo $descServico[0]->sessao1_foto_icone1;?>"> -->
+
 											<div class="card-body">
 												<h5 class="card-title"><?php echo $descServico[0]->sessao3_tituloColuna1;?></h5>
 												<p class="card-text1" ><?php echo $descServico[0]->sessao3_textoColuna1;?></p>
@@ -317,9 +331,12 @@ ul>li{
 									</div>
 									<div class="col">
 										<div class="card h-100">
-											<div class="col-lg-5 offset-lg-1 section-title">		
-												<img class="img-fluid" src="<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao3_iconeColuna2;?>" alt="<?php echo $descServico[0]->sessao3_iconeColuna2;?>" title="<?php echo $descServico[0]->sessao3_iconeColuna2;?>">			
-											</div> 
+												<nav id="session_3_img" style="background-image: url(<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao3_iconeColuna2;?>" alt="<?php echo $descServico[0]->sessao3_iconeColuna1;?>);">
+												</nav>
+
+												<!-- <img class="img-fluid" src="<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao3_iconeColuna2;?>" alt="<?php echo $descServico[0]->sessao3_iconeColuna2;?>" title="<?php echo $descServico[0]->sessao3_iconeColuna2;?>"> -->
+												<!-- <img  class="session3_img" src="<?php echo SITE_URL;?>/img/1623260484.1858-foto-N.jpg" alt="<?php echo $descServico[0]->sessao1_foto_icone1;?>" title="<?php echo $descServico[0]->sessao1_foto_icone1;?>"> -->
+
 											<div class="card-body">
 												<h5 class="card-title1"><?php echo $descServico[0]->sessao3_tituloColuna2;?></h5>
 												<p class="card-text1" ><?php echo $descServico[0]->sessao3_textoColuna2;?></p>
@@ -334,9 +351,11 @@ ul>li{
 									</div>
 									<div class="col">
 										<div class="card h-100">
-											<div class="col-lg-5 offset-lg-1 section-title">		
-												<img class="img-fluid" src="<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao3_iconeColuna3;?>" alt="<?php echo $descServico[0]->sessao3_iconeColuna3;?>" title="<?php echo $descServico[0]->sessao3_iconeColuna3;?>">			
-											</div> 
+												<nav id="session_3_img" style="background-image: url(<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao3_iconeColuna3;?>" alt="<?php echo $descServico[0]->sessao3_iconeColuna1;?>);">
+												</nav>
+												<!-- <img class="img-fluid" src="<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao3_iconeColuna3;?>" alt="<?php echo $descServico[0]->sessao3_iconeColuna3;?>" title="<?php echo $descServico[0]->sessao3_iconeColuna3;?>">			 -->
+												<!-- <img  class="session3_img" src="<?php echo SITE_URL;?>/img/1623260484.1858-foto-N.jpg" alt="<?php echo $descServico[0]->sessao1_foto_icone1;?>" title="<?php echo $descServico[0]->sessao1_foto_icone1;?>"> -->
+
 											<div class="card-body">
 												<h5 class="card-title1" ><?php echo $descServico[0]->sessao3_tituloColuna3;?></h5>
 												<p class="card-text1" ><?php echo $descServico[0]->sessao3_textoColuna3;?></p>
@@ -364,15 +383,17 @@ ul>li{
 				<div class="container">
 
 					<div class="row">	
-						<div class="col-lg-5 offset-lg-1 section-title" >
+						<div id="sessao4_text_container" class="col-lg-5 offset-lg-1 section-title" >
 							<h3 class="subTitulo"><?php echo $descServico[0]->sessao4_SubTitulo;?></h3>	
 							<h1><?php echo $descServico[0]->sessao4_titulo;?></h1>
 							<br>
 							<p ><?php echo $descServico[0]->sessao4_texto;?></p>
 							<a href="<?php echo $descServico[0]->link_botao_sessao4;?>" class="btn btn-bege bege-hover" ><?php echo $descServico[0]->nome_botao_sessao4;?></a>										
 						</div> 
-						<div class="col-lg-5 offset-lg-1 section-title">		
-								<img class="img-fluid" src="<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao4_icone;?>" alt="<?php echo $descServico[0]->sessao4_icone;?>" title="<?php echo $descServico[0]->sessao4_icone;?>">			
+						<div id="sessao_4_img_container" class="col-lg-5 offset-lg-1 section-title">
+								<!-- <img  class="session3_img" src="<?php echo SITE_URL;?>/img/1623260484.1858-foto-N.jpg" alt="<?php echo $descServico[0]->sessao1_foto_icone1;?>" title="<?php echo $descServico[0]->sessao1_foto_icone1;?>"> -->
+									
+								<img id="sessao4_icone" src="<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao4_icone;?>" alt="<?php echo $descServico[0]->sessao4_icone;?>" title="<?php echo $descServico[0]->sessao4_icone;?>">			
 						</div> 
 					</div>	  
 
@@ -381,62 +402,35 @@ ul>li{
 			</section>	
 
 		
-			
-			<section id="container-session5" class="diferenca bg-lightgrey wide-60 blog-section division diferenca">				
-				<div class="container1">
-					<div class="row">
-						<div class="card" >
-							<?php if(isset($$descServico->sessao5_foto1) && !empty($$descServico->sessao5_foto1)){ ?>
-								<div class="col-md-3">
-									<div class="form-group">
-								<img src="<?php echo SITE_URL;?>/img/<?php echo $$descServico->sessao5_foto1;?>" width="150" alt="">
-									</div>
-								</div>
-							<?php }?>
-						</div>
-						
-						<div class="card" >
-							<?php if(isset($$descServico->sessao5_foto2) && !empty($$descServico->sessao5_foto2)){ ?>
-								<div class="col-md-3">
-									<div class="form-group">
-								<img src="<?php echo SITE_URL;?>/img/<?php echo $$descServico->sessao5_foto2;?>" width="150" alt="">
-									</div>
-								</div>
-							<?php }?>
-						</div>
-						
-						<div class="card" >
-							<?php if(isset($$descServico->sessao5_foto3) && !empty($$descServico->sessao5_foto3)){ ?>
-								<div class="col-md-3">
-									<div class="form-group">
-								<img src="<?php echo SITE_URL;?>/img/<?php echo $$descServico->sessao5_foto3;?>" width="150" alt="">
-									</div>
-								</div>
-							<?php }?>
-						</div>
+			<section id="session_5">
+					<nav>
 
-						<div class="card">
-							<?php if(isset($$descServico->sessao5_foto4) && !empty($$descServico->sessao5_foto4)){ ?>
-								<div class="col-md-3">
-									<div class="form-group">
-								<img src="<?php echo SITE_URL;?>/img/<?php echo $$descServico->sessao5_foto4;?>" width="150" alt="">
-									</div>
-								</div>
-							<?php }?>
-						</div>
-					</div>
-					<div>	
-						<div class="row-lg-10 offset-lg-1 section-title">	
-							<div class="texto">
-								<?php echo $descServico[0]->sessao5_texto;?>
-							</div>
-							<div class="col">	
-								<a href="<?php echo $descServico[0]->link_botao_sessao5;?>" class="btn btn-bege bege-hover" ><?php echo $descServico[0]->nome_botao_sessao5;?></a>		
-							</div>									
-						</div>
-					</div>
-				</div>	 
-		</section>
+						<?php if(isset($descServico[0]->sessao5_foto1) && !empty($descServico[0]->sessao5_foto1)){ ?>
+									<div style="background-image: url(<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao5_foto1;?>);"></div>
+						<?php }?>
+						<!--  -->
+						<?php if(isset($descServico[0]->sessao5_foto2) && !empty($descServico[0]->sessao5_foto2)){ ?>
+									<div style="background-image: url(<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao5_foto2;?>);"></div>
+						<?php }?>
+						<!--  -->
+						<?php if(isset($descServico[0]->sessao5_foto3) && !empty($descServico[0]->sessao5_foto3)){ ?>
+									<div style="background-image: url(<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao5_foto3;?>);"></div>
+						<?php }?>
+						<!--  -->
+						<?php if(isset($descServico[0]->sessao5_foto4) && !empty($descServico[0]->sessao5_foto4)){ ?>
+									<div style="background-image: url(<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->sessao5_foto4;?>);"></div>
+						<?php }?>
+
+					</nav>
+
+					<nav>
+						 <p><?php echo $descServico[0]->sessao5_texto;?> </p>
+						<a href="<?php echo $descServico[0]->link_botao_sessao5;?>" class="btn btn-bege bege-hover" ><?php echo $descServico[0]->nome_botao_sessao5;?></a>	
+					</nav>
+
+			</section>
+			
+			
 	
 			<?php if($descServico[0]->texto_corrido <> ''){?>
 				<section id="blog-1" class="diferenca wide-60 blog-section division diferenca">				
@@ -468,70 +462,7 @@ ul>li{
 
 
             
-			<section id="contacts-2" class="wide-60-1 contacts-section division" style="background-image:url(<?php echo SITE_URL;?>/img/1627331759.4-imagem_final-N.jpg);background-size:cover">				
-				<div class="container">
-					<div class="row">	
-				 		<div class="col-lg-6">
-				 			<!--<img class="img-fluid" src="<?php echo SITE_URL;?>/img/<?php echo $descServico[0]->imagem_final;?>" alt="Imagem-Contato" title="Imagem Contato" />-->
-						</div>
-				 		<div class="col-lg-6">
-				 		    
-						 <div class="sending-msg">
-					                	<?php
-											if (!empty($erros))
-											{
-											?>
-													<div class="alert alert-danger" role="alert">
-														Seu contato não foi enviado:
-														<ul class="mb-0">
-											<?php
-												foreach ($erros as $erro)
-													echo '<li>' . htmlspecialchars($erro) . "</li>\n";
-											?>
-														</ul>
-													</div>
-											<?php
-											}
-											?>
-					                	</div>
-				 			<div class="form-holder mb-40">
-				 			    
-								<form name="contactForm" method="POST" class="row contact-form">
-				                    <h3 class="h3-md"><?php echo $descServico[0]->contato_titulo;?></h3>
-							 <?php echo $descServico[0]->contato_texto;?>
-					                <div id="input-name" class="col-md-12">
-					                	<input type="text" name="nome" class="form-control name" placeholder="Seu nome*" required> 
-					                </div>
-					                        
-					                <div id="input-email" class="col-md-12">
-					                	<input type="text" name="email" class="form-control email" placeholder="Seu e-mail*" required> 
-					                </div>
-
-					                <div id="input-phone" class="col-md-12">
-					                	<input type="tel" name="telefone" class="form-control phone" placeholder="Seu telefone*" required> 
-					                </div>	
-
-					                <div id="input-message" class="col-md-12 input-message">
-					                	<textarea class="form-control message" name="mensagem" rows="6" placeholder="Sua mensagem ..." required></textarea>
-					                </div> 
-									<div class="col-md-12 ">
-										<div class="g-recaptcha" data-sitekey="<?php echo $chave_de_site; ?>"></div>
-									</div>
-					                  
-					                <div class="col-md-12 mt-15 form-btn">  
-					                	<button type="submit" class="btn btn-bege bege-hover submit">
-											Enviar
-										</button> 
-					                </div>
-									<input type="hidden" name="acao" value="enviarMensagem">       
-									<input type="hidden" name="assunto" value="<?php echo $id;?>">                              
-				                </form> 
-				 			</div>	
-				 		</div>
-
-				 	</div>
-				</div>
-			</section>
+			
 			<?php include "footer.php";?>
 		</div>
 		<script src="<?php echo SITE_URL;?>/js/jquery-3.3.1.min.js?v=<?php echo version;?>"></script>

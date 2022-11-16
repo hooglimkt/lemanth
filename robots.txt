@@ -1,0 +1,3 @@
+User-agent: *
+Disallow: 
+Sitemap: https://lemanth.com.br/sitemap.xml

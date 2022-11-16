@@ -567,7 +567,6 @@ if(empty($ServicosInstanciada)) {
 					$stm->bindValue(119, upload('sessao5_foto4', $pastaArquivos, 'N'));
 					$stm->bindValue(120, $id);
 					echo exec('whoami');
-					exit;
 					$stm->execute(); 
 					
 					
@@ -575,13 +574,11 @@ if(empty($ServicosInstanciada)) {
 					
 				} catch(PDOException $erro){
 					echo $erro->getMessage(); 
-				
 				}
+
+				header("Location: $redireciona");
 				
-				echo "	<script>
-							window.location='{$redireciona}';
-							</script>";
-							exit;
+				exit;
 			}
 		}
 		

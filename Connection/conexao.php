@@ -1,6 +1,6 @@
 <?php 
 $hostname_conexao = "localhost";
-$database_conexao = "lemanth";
+$database_conexao = "lem";
 $username_conexao = "root";
 $password_conexao = "";
 
